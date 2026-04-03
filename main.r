@@ -96,3 +96,52 @@ print('Estimativa densidade')
 
 df$`lesao corporal dolosa` <- rnorm(120)
 plot(density(df$`lesao.corporal.dolosa`))
+
+# Distribuicao normal
+library(fitdistrplus)
+teste <- fitdist(df$`total.de.roubo...outros`, "norm")
+plot(teste)
+teste
+
+# Teste de correlação (pega as 10 maiores correlações da tabela)
+# 1. Filtrar apenas colunas numéricas
+df_num <- df[, sapply(df, is.numeric)]
+
+# 2. Calcular a matriz de correlação
+matriz_cor <- cor(df_num, use = "pairwise.complete.obs")
+
+# 3. Remover a diagonal e a parte repetida (espelhada)
+matriz_cor[lower.tri(matriz_cor, diag = TRUE)] <- NA
+
+# 4. Transformar em formato de lista (long format)
+tabela_cor <- as.data.frame(as.table(matriz_cor))
+
+# 5. Limpar os NAs e renomear
+tabela_cor <- na.omit(tabela_cor)
+colnames(tabela_cor) <- c("Variavel_1", "Variavel_2", "Correlacao")
+
+# 6. Obter as 10 maiores correlações (em valor absoluto)
+top_10 <- head(tabela_cor[order(abs(tabela_cor$Correlacao), decreasing = TRUE), ], 10)
+
+# Resultado
+print(top_10)
+
+#Relacao entre duas colunas com alta correlacao (Lesao corporal dolosa e furtos, no caso)
+plot(df$lesao.corporal.dolosa, df$furto...outros,
+main = "Relacao entre lesao corporal dolosa e furtos",
+xlab = "Lesao corporal dolosa", ylab = "Furtos",
+pch = 14, # alterar formato
+col = "blue", # cor dos pontos
+cex = 1.3) # tamanho dos pontos
+
+
+#tapply + Distribuicao de roubos por cidades com boxplot
+summary_roubos_cidades <-tapply(df$roubo...outros,df$cidade,summary)
+summary_roubos_cidades
+
+boxplot(df$roubo...outros ~ df$cidade,data = df,
+col="darkblue", #cordepreenchimento
+border="grey", #cordasbordas
+main="Distribuição de roubos por cidade",
+xlab="Cidades",
+ylab="N de Roubos")
