@@ -145,3 +145,27 @@ border="grey", #cordasbordas
 main="Distribuição de roubos por cidade",
 xlab="Cidades",
 ylab="N de Roubos")
+
+
+#alpha e beta - Função lm
+
+# Garante que os dados estão em ordem cronológica
+df <- df[order(df$Data), ]
+
+# Cria o índice numérico (1 para o janeiro, 2 para fevereiro, etc.)
+df$mes_indice <- 1:nrow(df)
+
+y <- df$furto...outros
+x <- df$mes_indice
+  
+fun_lm <- lm( 
+  formula = y ~ x, 
+  data = df, 
+  subset = x >= 50, 
+  weights = 1/x, 
+  na.action = na.omit
+  )
+
+fun_lm
+
+plot(x, y, main = "Tabela teste", pch = 19, col = "darkgray", xlab = "x", ylab = "y")
