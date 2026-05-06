@@ -1,1 +1,1 @@
-# Teoria-do-Aprendizado-Estat-stico
+# Teoria-do-Aprendizado-Estatístico
