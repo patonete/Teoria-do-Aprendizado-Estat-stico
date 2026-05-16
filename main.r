@@ -195,3 +195,46 @@ plot(df$furto...outros, df$total.de.roubo...outros,
 abline(modelo_completo, col = "red", lwd = 3)
 
 legend("topleft", legend = "Linha de Tendência", col = "red", lwd = 3)
+
+#KNN e K-means
+
+library(ggplot2)
+library(cluster)
+
+dados_cluster <- df[, c("furto...outros", "total.de.roubo...outros")]
+dados_scale <- scale(dados_cluster)
+
+set.seed(123)
+grupos <- kmeans(dados_scale, centers = 3)
+
+df$nivel_seguranca <- as.factor(grupos$cluster)
+
+ggplot(df, aes(x = furto...outros, y = total.de.roubo...outros, color = nivel_seguranca)) +
+  geom_point(size = 3) +
+  stat_ellipse() +
+  labs(title = "Classificação de Segurança - Baixada Santista",
+       x = "Volume de Furtos",
+       y = "Volume de Roubos",
+       color = "Nível de Risco") +
+  theme_minimal()
+
+  #Random forest (tentativa de previsão da cidade baseado nos roubos e furtos que aconteceram)
+library(randomForest)
+
+set.seed(123)
+
+modelo_rf <-randomForest(
+  df$cidade ~ df$furto...outros + df$furto.de.veiculo + df$total.de.roubo...outros,
+  data = df,
+  ntree =500,
+  mtry =2,
+  importance=TRUE
+)
+
+novo_dado <- df[1]
+
+novo_dado$furto...outros <- 10
+novo_dado$furto.de.veiculo <- 2
+novo_dado$total.de.roubo...outros <- 5
+
+predict(modelo_rf,novo_dado,type="prob")
