@@ -169,3 +169,29 @@ fun_lm <- lm(
 fun_lm
 
 plot(x, y, main = "Tabela teste", pch = 19, col = "darkgray", xlab = "x", ylab = "y")
+
+#Regressão linear
+
+modelo_completo <- lm(
+  formula = total.de.roubo...outros	~ furto...outros,
+  data = df,
+  subset = furto...outros <= 400,
+  weights = 1 / (furto...outros + 1),
+  na.action = na.omit
+)
+
+print(modelo_completo)
+
+summary(modelo_completo)
+
+plot(df$furto...outros, df$total.de.roubo...outros,
+     main = "Relação: Furto outros vs Total de Roubos",
+     xlab = "Furto outros",
+     ylab = "Total de Roubo (Outros)",
+     pch = 16,
+     col = "darkgreen",
+     las = 1)
+
+abline(modelo_completo, col = "red", lwd = 3)
+
+legend("topleft", legend = "Linha de Tendência", col = "red", lwd = 3)
