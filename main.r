@@ -218,7 +218,8 @@ ggplot(df, aes(x = furto...outros, y = total.de.roubo...outros, color = nivel_se
        color = "Nível de Risco") +
   theme_minimal()
 
-  #Random forest (tentativa de previsão da cidade baseado nos roubos e furtos que aconteceram)
+#Random forest (tentativa de previsão da cidade baseado nos roubos e furtos que aconteceram)
+
 library(randomForest)
 
 set.seed(123)
@@ -238,3 +239,71 @@ novo_dado$furto.de.veiculo <- 2
 novo_dado$total.de.roubo...outros <- 5
 
 predict(modelo_rf,novo_dado,type="prob")
+
+# Metodos elbow e silhouette
+
+#Elbow
+library(ggplot2)
+
+set.seed(42)
+
+dados_cluster <- df[, c("furto...outros", "total.de.roubo...outros")]
+dados_scale <- scale(dados_cluster)
+
+# Vetor para armazenar a soma dos quadrados dentro dos clusters (Inércia / WCSS)
+wcss <- integer(10)
+
+# Testando clusters de 1 a 10
+for (k in 1:10) {
+  modelo <- kmeans(dados_scale, centers = k, nstart = 20)
+
+  # tot.withinss é o que faz a soma das distâncias ao quadrado
+  wcss[k] <- modelo$tot.withinss
+}
+
+df_elbow <- data.frame(Clusters = 1:10, WCSS = wcss)
+
+ggplot(df_elbow, aes(x = Clusters, y = WCSS)) +
+  geom_line(color = "blue", linetype = "dashed", linewidth = 1) +
+  geom_point(color = "darkblue", size = 3) +
+  scale_x_continuous(breaks = 1:10) +
+  labs(
+    title = "Método Elbow (Cotovelo) em R",
+    subtitle = "Identificando o número ideal de clusters",
+    x = "Número de Clusters (K)",
+    y = "Soma dos Quadrados Dentro dos Clusters (WCSS)"
+  ) +
+  theme_minimal()
+
+# Silhouette
+
+set.seed(42)
+dados_escalonados <- scale(df[, c("furto...outros", "total.de.roubo...outros")])
+modelo_final <- kmeans(dados_scale, centers = 5, nstart = 20)
+
+# Calcula o coeficiente silhueta de cada ponto
+silhueta_detalhada <- silhouette(modelo_final$cluster, dist(dados_scale))
+
+# Coloca o resultado do coeficiente silhueta em um data frame
+df_sil <- as.data.frame(silhueta_detalhada[, 1:3])
+df_sil$cluster <- as.factor(df_sil$cluster)
+
+# Ordena os pontos, primeiro por cluster e depois pelo valor da silhueta (decrescente)
+df_sil <- df_sil[order(df_sil$cluster, -df_sil$sil_width), ]
+
+# Cria um ID sequencial para o eixo Y
+df_sil$id <- 1:nrow(df_sil)
+
+teste_sil <- ggplot(df_sil, aes(x = reorder(id, -id), y = sil_width, fill = cluster, color = cluster)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "Gráfico de Silhueta por Cluster",
+       x = "Pontos dentro de cada grupo",
+       y = "Coeficiente de Silhueta",
+       fill = "Cluster",
+       color = "Cluster") +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+  )
